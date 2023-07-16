@@ -6,31 +6,35 @@
 //  Copyright © 2018 Yummypets. All rights reserved.
 //
 
+import iOSPhotoEditor
 import UIKit
 
 public class YPSelectionsGalleryVC: UIViewController, YPSelectionsGalleryCellDelegate {
-    
     override public var prefersStatusBarHidden: Bool { return YPConfig.hidesStatusBar }
-    
+
     public var items: [YPMediaItem] = []
     public var didFinishHandler: ((_ gallery: YPSelectionsGalleryVC, _ items: [YPMediaItem]) -> Void)?
     private var lastContentOffsetX: CGFloat = 0
-    
+
+    var selectedIndex: Int = 0
+
     var v = YPSelectionsGalleryView()
-    public override func loadView() { view = v }
+    override public func loadView() { view = v }
 
     public required init(items: [YPMediaItem],
                          didFinishHandler:
-        @escaping ((_ gallery: YPSelectionsGalleryVC, _ items: [YPMediaItem]) -> Void)) {
+                         @escaping ((_ gallery: YPSelectionsGalleryVC, _ items: [YPMediaItem]) -> Void))
+    {
         super.init(nibName: nil, bundle: nil)
         self.items = items
         self.didFinishHandler = didFinishHandler
     }
-    
+
+    @available(*, unavailable)
     public required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override public func viewDidLoad() {
         super.viewDidLoad()
 
@@ -38,7 +42,7 @@ public class YPSelectionsGalleryVC: UIViewController, YPSelectionsGalleryCellDel
         v.collectionView.register(YPSelectionsGalleryCell.self, forCellWithReuseIdentifier: "item")
         v.collectionView.dataSource = self
         v.collectionView.delegate = self
-        
+
         // Setup navigation bar
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: YPConfig.wordings.next,
                                                             style: .done,
@@ -48,7 +52,7 @@ public class YPSelectionsGalleryVC: UIViewController, YPSelectionsGalleryCellDel
         navigationItem.rightBarButtonItem?.setFont(font: YPConfig.fonts.rightBarButtonFont, forState: .disabled)
         navigationItem.rightBarButtonItem?.setFont(font: YPConfig.fonts.rightBarButtonFont, forState: .normal)
         navigationController?.navigationBar.setTitleFont(font: YPConfig.fonts.navigationBarTitleFont)
-        
+
         YPHelper.changeBackButtonIcon(self)
         YPHelper.changeBackButtonTitle(self)
     }
@@ -58,14 +62,14 @@ public class YPSelectionsGalleryVC: UIViewController, YPSelectionsGalleryCellDel
         // Save new images to the photo album.
         if YPConfig.shouldSaveNewPicturesToAlbum {
             for m in items {
-                if case let .photo(p) = m, let modifiedImage = p.modifiedImage {
+                if case .photo(let p) = m, let modifiedImage = p.modifiedImage {
                     YPPhotoSaver.trySaveImage(modifiedImage, inAlbumNamed: YPConfig.albumName)
                 }
             }
         }
         didFinishHandler?(self, items)
     }
-    
+
     public func selectionsGalleryCellDidTapRemove(cell: YPSelectionsGalleryCell) {
         if let indexPath = v.collectionView.indexPath(for: cell) {
             items.remove(at: indexPath.row)
@@ -77,15 +81,18 @@ public class YPSelectionsGalleryVC: UIViewController, YPSelectionsGalleryCellDel
 }
 
 // MARK: - Collection View
+
 extension YPSelectionsGalleryVC: UICollectionViewDataSource {
     public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return items.count
     }
-    
+
     public func collectionView(_ collectionView: UICollectionView,
-                               cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+                               cellForItemAt indexPath: IndexPath) -> UICollectionViewCell
+    {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "item",
-                                                            for: indexPath) as? YPSelectionsGalleryCell else {
+                                                            for: indexPath) as? YPSelectionsGalleryCell
+        else {
             return UICollectionViewCell()
         }
         cell.delegate = self
@@ -104,21 +111,35 @@ extension YPSelectionsGalleryVC: UICollectionViewDataSource {
 }
 
 extension YPSelectionsGalleryVC: UICollectionViewDelegate {
-    
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let item = items[indexPath.row]
+        selectedIndex = indexPath.row
         var mediaFilterVC: IsMediaFilterVC?
         switch item {
         case .photo(let photo):
-            if !YPConfig.filters.isEmpty, YPConfig.showsPhotoFilters {
-                mediaFilterVC = YPPhotoFiltersVC(inputPhoto: photo, isFromSelectionVC: true)
+            if YPConfig.showsPhotoEditor {
+                let photoEditor = PhotoEditorViewController(nibName: "PhotoEditorViewController", bundle: Bundle(for: PhotoEditorViewController.self))
+                photoEditor.photoEditorDelegate = self
+                photoEditor.image = photo.image
+                // Colors for drawing and Text, If not set default values will be used
+                // photoEditor.colors = [.red, .blue, .green]
+
+                // To hide controls - array of enum control
+                // photoEditor.hiddenControls = [.crop, .draw, .share]
+                photoEditor.modalPresentationStyle = UIModalPresentationStyle.currentContext // or .overFullScreen for transparency
+                present(photoEditor, animated: true, completion: nil)
+                return
+            } else {
+                if !YPConfig.filters.isEmpty, YPConfig.showsPhotoFilters {
+                    mediaFilterVC = YPPhotoFiltersVC(inputPhoto: photo, isFromSelectionVC: true)
+                }
             }
         case .video(let video):
             if YPConfig.showsVideoTrimmer {
                 mediaFilterVC = YPVideoFiltersVC.initWith(video: video, isFromSelectionVC: true)
             }
         }
-        
+
         mediaFilterVC?.didSave = { outputMedia in
             self.items[indexPath.row] = outputMedia
             collectionView.reloadData()
@@ -134,7 +155,7 @@ extension YPSelectionsGalleryVC: UICollectionViewDelegate {
             present(navVC, animated: true, completion: nil)
         }
     }
-    
+
     // Set "paging" behaviour when scrolling backwards.
     // This works by having `targetContentOffset(forProposedContentOffset: withScrollingVelocity` overriden
     // in the collection view Flow subclass & using UIScrollViewDecelerationRateFast
@@ -144,5 +165,18 @@ extension YPSelectionsGalleryVC: UICollectionViewDelegate {
             ? UIScrollView.DecelerationRate.fast
             : UIScrollView.DecelerationRate.normal
         lastContentOffsetX = scrollView.contentOffset.x
+    }
+}
+
+extension YPSelectionsGalleryVC: PhotoEditorDelegate {
+    public func doneEditing(image: UIImage) {
+        items[selectedIndex] = YPMediaItem.photo(p: YPMediaPhoto(image: image))
+        v.collectionView.reloadData()
+        dismiss(animated: true, completion: nil)
+    }
+
+    public func canceledEditing() {
+        print("Canceled")
+        dismiss(animated: true, completion: nil)
     }
 }

@@ -19,13 +19,17 @@ let package = Package(
         .package(
             url: "https://github.com/HHK1/PryntTrimmerView",
             .exact("4.0.2")
+        ),
+        .package(
+            url: "https://github.com/liukundavid/photo-editor.git",
+            .exact("1.0.0")
         )
 
     ],
     targets: [
         .target(
             name: "YPImagePicker",
-            dependencies: ["Stevia", "PryntTrimmerView"],
+            dependencies: ["Stevia", "PryntTrimmerView", "iOSPhotoEditor"],
             path: "Source",
             exclude: ["Info.plist", "YPImagePickerHeader.h"]
         )

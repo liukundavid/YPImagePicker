@@ -228,6 +228,9 @@ public struct YPConfigLibrary {
 
     /// Set the overlay type shown on top of the selected library item
     public var itemOverlayType: YPItemOverlayType = .grid
+
+    /// Display the asset view container. Defaults to true.
+    public var displayAssetViewContainer = true
 }
 
 /// Encapsulates video specific settings.

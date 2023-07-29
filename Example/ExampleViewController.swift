@@ -6,15 +6,15 @@
 //  Copyright © 2017 Octopepper. All rights reserved.
 //
 
-import UIKit
 import AVFoundation
 import AVKit
 import Photos
+import UIKit
 
 class ExampleViewController: UIViewController {
     var selectedItems = [YPMediaItem]()
 
-    lazy var selectedImageV : UIImageView = {
+    lazy var selectedImageV: UIImageView = {
         let imageView = UIImageView(frame: CGRect(x: 0,
                                                   y: 0,
                                                   width: UIScreen.main.bounds.width,
@@ -23,7 +23,7 @@ class ExampleViewController: UIViewController {
         return imageView
     }()
 
-    lazy var pickButton : UIButton = {
+    lazy var pickButton: UIButton = {
         let button = UIButton(frame: CGRect(x: 0,
                                             y: 0,
                                             width: 100,
@@ -34,7 +34,7 @@ class ExampleViewController: UIViewController {
         return button
     }()
 
-    lazy var resultsButton : UIButton = {
+    lazy var resultsButton: UIButton = {
         let button = UIButton(frame: CGRect(x: 0,
                                             y: UIScreen.main.bounds.height - 100,
                                             width: UIScreen.main.bounds.width,
@@ -48,7 +48,7 @@ class ExampleViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.view.backgroundColor = .white
+        view.backgroundColor = .white
         view.addSubview(selectedImageV)
         view.addSubview(pickButton)
         pickButton.center = view.center
@@ -62,18 +62,17 @@ class ExampleViewController: UIViewController {
                 g.dismiss(animated: true, completion: nil)
             }
             let navC = UINavigationController(rootViewController: gallery)
-            self.present(navC, animated: true, completion: nil)
+            present(navC, animated: true, completion: nil)
         } else {
             print("No items selected yet.")
         }
     }
 
     // MARK: - Configuration
+
     @objc
     func showPicker() {
-
         var config = YPImagePickerConfiguration()
-
         /* Uncomment and play around with the configuration 👨‍🔬 🚀 */
 
         /* Set this to true if you want to force the  library output to be a squared image. Defaults to false */
@@ -83,12 +82,12 @@ class ExampleViewController: UIViewController {
         // config.onlySquareImagesFromCamera = false
 
         /* Ex: cappedTo:1024 will make sure images from the library or the camera will be
-           resized to fit in a 1024x1024 box. Defaults to original image size. */
+         resized to fit in a 1024x1024 box. Defaults to original image size. */
         // config.targetImageSize = .cappedTo(size: 1024)
 
         /* Choose what media types are available in the library. Defaults to `.photo` */
         config.library.mediaType = .photoAndVideo
-		config.library.itemOverlayType = .grid
+        config.library.itemOverlayType = .grid
         /* Enables selecting the front camera by default, useful for avatars. Defaults to false */
         // config.usesFrontCamera = true
 
@@ -102,7 +101,7 @@ class ExampleViewController: UIViewController {
         // config.filters.insert(YPFilter(name: "Blur", coreImageFilterName: "CIBoxBlur"), at: 1)
 
         /* Enables you to opt out from saving new (or old but filtered) images to the
-           user's photo library. Defaults to true. */
+         user's photo library. Defaults to true. */
         config.shouldSaveNewPicturesToAlbum = false
 
         /* Choose the videoCompression. Defaults to AVAssetExportPresetHighestQuality */
@@ -112,30 +111,32 @@ class ExampleViewController: UIViewController {
         // config.video.recordingSizeLimit = 10000000
 
         /* Defines the name of the album when saving pictures in the user's photo library.
-           In general that would be your App name. Defaults to "DefaultYPImagePickerAlbumName" */
+         In general that would be your App name. Defaults to "DefaultYPImagePickerAlbumName" */
         // config.albumName = "ThisIsMyAlbum"
 
         /* Defines which screen is shown at launch. Video mode will only work if `showsVideo = true`.
-           Default value is `.photo` */
+         Default value is `.photo` */
         config.startOnScreen = .library
 
         /* Defines which screens are shown at launch, and their order.
-           Default value is `[.library, .photo]` */
+         Default value is `[.library, .photo]` */
         config.screens = [.library, .photo, .video]
 
         /* Can forbid the items with very big height with this property */
         config.library.minWidthForItem = UIScreen.main.bounds.width * 0.8
 
+        config.library.displayAssetViewContainer = true
+
         /* Defines the time limit for recording videos.
-           Default is 30 seconds. */
+         Default is 30 seconds. */
         // config.video.recordingTimeLimit = 5.0
 
         /* Defines the time limit for videos from the library.
-           Defaults to 60 seconds. */
+         Defaults to 60 seconds. */
         config.video.libraryTimeLimit = 500.0
 
         /* Adds a Crop step in the photo taking process, after filters. Defaults to .none */
-        config.showsCrop = .rectangle(ratio: (16/9))
+        config.showsCrop = .rectangle(ratio: 16 / 9)
 
         /* Changes the crop mask color */
         // config.colors.cropOverlayColor = .green
@@ -157,42 +158,42 @@ class ExampleViewController: UIViewController {
 
         config.maxCameraZoomFactor = 2.0
 
-        config.library.maxNumberOfItems = 5
+        config.library.defaultMultipleSelection = true
+        config.library.maxNumberOfItems = 9
         config.gallery.hidesRemoveButton = false
 
         /* Disable scroll to change between mode */
         // config.isScrollToChangeModesEnabled = false
-        // config.library.minNumberOfItems = 2
+//        config.library.minNumberOfItems = 2
 
         /* Skip selection gallery after multiple selections */
         // config.library.skipSelectionsGallery = true
 
         /* Here we use a per picker configuration. Configuration is always shared.
-           That means than when you create one picker with configuration, than you can create other picker with just
-           let picker = YPImagePicker() and the configuration will be the same as the first picker. */
+         That means than when you create one picker with configuration, than you can create other picker with just
+         let picker = YPImagePicker() and the configuration will be the same as the first picker. */
 
         /* Only show library pictures from the last 3 days */
-        //let threDaysTimeInterval: TimeInterval = 3 * 60 * 60 * 24
-        //let fromDate = Date().addingTimeInterval(-threDaysTimeInterval)
-        //let toDate = Date()
-        //let options = PHFetchOptions()
+        // let threDaysTimeInterval: TimeInterval = 3 * 60 * 60 * 24
+        // let fromDate = Date().addingTimeInterval(-threDaysTimeInterval)
+        // let toDate = Date()
+        // let options = PHFetchOptions()
         // options.predicate = NSPredicate(format: "creationDate > %@ && creationDate < %@", fromDate as CVarArg, toDate as CVarArg)
         //
         ////Just a way to set order
-        //let sortDescriptor = NSSortDescriptor(key: "creationDate", ascending: true)
-        //options.sortDescriptors = [sortDescriptor]
+        // let sortDescriptor = NSSortDescriptor(key: "creationDate", ascending: true)
+        // options.sortDescriptors = [sortDescriptor]
         //
-        //config.library.options = options
+        // config.library.options = options
 
         config.library.preselectedItems = selectedItems
 
-
-		// Customise fonts
-		//config.fonts.menuItemFont = UIFont.systemFont(ofSize: 22.0, weight: .semibold)
-		//config.fonts.pickerTitleFont = UIFont.systemFont(ofSize: 22.0, weight: .black)
-		//config.fonts.rightBarButtonFont = UIFont.systemFont(ofSize: 22.0, weight: .bold)
-		//config.fonts.navigationBarTitleFont = UIFont.systemFont(ofSize: 22.0, weight: .heavy)
-		//config.fonts.leftBarButtonFont = UIFont.systemFont(ofSize: 22.0, weight: .heavy)
+        // Customise fonts
+        // config.fonts.menuItemFont = UIFont.systemFont(ofSize: 22.0, weight: .semibold)
+        // config.fonts.pickerTitleFont = UIFont.systemFont(ofSize: 22.0, weight: .black)
+        // config.fonts.rightBarButtonFont = UIFont.systemFont(ofSize: 22.0, weight: .bold)
+        // config.fonts.navigationBarTitleFont = UIFont.systemFont(ofSize: 22.0, weight: .heavy)
+        // config.fonts.leftBarButtonFont = UIFont.systemFont(ofSize: 22.0, weight: .heavy)
 
         let picker = YPImagePicker(configuration: config)
 
@@ -222,7 +223,7 @@ class ExampleViewController: UIViewController {
 
                     let assetURL = video.url
                     let playerVC = AVPlayerViewController()
-                    let player = AVPlayer(playerItem: AVPlayerItem(url:assetURL))
+                    let player = AVPlayer(playerItem: AVPlayerItem(url: assetURL))
                     playerVC.player = player
 
                     picker?.dismiss(animated: true, completion: { [weak self] in
@@ -256,7 +257,7 @@ class ExampleViewController: UIViewController {
         //        self?.present(playerVC, animated: true, completion: nil)
         //        print("😀 \(String(describing: self?.resolutionForLocalVideo(url: assetURL)!))")
         //    })
-        //}
+        // }
 
         present(picker, animated: true, completion: nil)
     }

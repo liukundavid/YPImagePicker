@@ -6,15 +6,14 @@
 //  Copyright © 2015 Yummypets. All rights reserved.
 //
 
-import UIKit
-import Stevia
 import Photos
+import Stevia
+import UIKit
 
 internal final class YPLibraryView: UIView {
-
     // MARK: - Public vars
 
-    internal let assetZoomableViewMinimalVisibleHeight: CGFloat  = 50
+    internal let assetZoomableViewMinimalVisibleHeight: CGFloat = 50
     internal var assetViewContainerConstraintTop: NSLayoutConstraint?
     internal let collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -26,16 +25,19 @@ internal final class YPLibraryView: UIView {
         v.alwaysBounceVertical = true
         return v
     }()
+
     internal lazy var assetViewContainer: YPAssetViewContainer = {
         let v = YPAssetViewContainer(frame: .zero, zoomableView: assetZoomableView)
         v.accessibilityIdentifier = "assetViewContainer"
         return v
     }()
+
     internal let assetZoomableView: YPAssetZoomableView = {
         let v = YPAssetZoomableView(frame: .zero)
         v.accessibilityIdentifier = "assetZoomableView"
         return v
     }()
+
     /// At the bottom there is a view that is visible when selected a limit of items with multiple selection
     internal let maxNumberWarningView: UIView = {
         let v = UIView()
@@ -43,6 +45,7 @@ internal final class YPLibraryView: UIView {
         v.isHidden = true
         return v
     }()
+
     internal let maxNumberWarningLabel: UILabel = {
         let v = UILabel()
         v.font = YPConfig.fonts.libaryWarningFont
@@ -56,6 +59,7 @@ internal final class YPLibraryView: UIView {
         v.backgroundColor = .ypSystemBackground
         return v
     }()
+
     /// When video is processing this bar appears
     private let progressView: UIProgressView = {
         let v = UIProgressView()
@@ -66,11 +70,13 @@ internal final class YPLibraryView: UIView {
         v.isUserInteractionEnabled = false
         return v
     }()
+
     private let collectionContainerView: UIView = {
         let v = UIView()
         v.accessibilityIdentifier = "collectionContainerView"
         return v
     }()
+
     private var shouldShowLoader = false {
         didSet {
             DispatchQueue.main.async {
@@ -82,11 +88,13 @@ internal final class YPLibraryView: UIView {
         }
     }
 
+    private var showAssetViewContainer = true
+
     // MARK: - Init
 
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-
+    init(showAsset: Bool) {
+        super.init(frame: .zero)
+        self.showAssetViewContainer = showAsset
         setupLayout()
         clipsToBounds = true
     }
@@ -151,14 +159,14 @@ internal final class YPLibraryView: UIView {
 
     func refreshImageCurtainAlpha() {
         let imageCurtainAlpha = abs(assetViewContainerConstraintTop?.constant ?? 0)
-        / (assetViewContainer.frame.height - assetZoomableViewMinimalVisibleHeight)
+            / (assetViewContainer.frame.height - assetZoomableViewMinimalVisibleHeight)
         assetViewContainer.curtain.alpha = imageCurtainAlpha
     }
 
     func cellSize() -> CGSize {
         var screenWidth: CGFloat = UIScreen.main.bounds.width
         if UIDevice.current.userInterfaceIdiom == .pad && YPImagePickerConfiguration.widthOniPad > 0 {
-            screenWidth =  YPImagePickerConfiguration.widthOniPad
+            screenWidth = YPImagePickerConfiguration.widthOniPad
         }
         let size = screenWidth / 4 * UIScreen.main.scale
         return CGSize(width: size, height: size)
@@ -167,35 +175,59 @@ internal final class YPLibraryView: UIView {
     // MARK: - Private Methods
 
     private func setupLayout() {
-        subviews(
-            collectionContainerView.subviews(
-                collectionView
-            ),
-            line,
-            assetViewContainer.subviews(
-                assetZoomableView
-            ),
-            progressView,
-            maxNumberWarningView.subviews(
-                maxNumberWarningLabel
+        if showAssetViewContainer {
+            subviews(
+                collectionContainerView.subviews(
+                    collectionView
+                ),
+                line,
+                assetViewContainer.subviews(
+                    assetZoomableView
+                ),
+                progressView,
+                maxNumberWarningView.subviews(
+                    maxNumberWarningLabel
+                )
             )
-        )
 
-        collectionContainerView.fillContainer()
-        collectionView.fillHorizontally().bottom(0)
+            collectionContainerView.fillContainer()
+            collectionView.fillHorizontally().bottom(0)
 
-        assetViewContainer.Bottom == line.Top
-        line.height(1)
-        line.fillHorizontally()
+            assetViewContainer.Bottom == line.Top
+            line.height(1)
+            line.fillHorizontally()
 
-        assetViewContainer.top(0).fillHorizontally().heightEqualsWidth()
-        self.assetViewContainerConstraintTop = assetViewContainer.topConstraint
-        assetZoomableView.fillContainer().heightEqualsWidth()
-        assetZoomableView.Bottom == collectionView.Top
-        assetViewContainer.sendSubviewToBack(assetZoomableView)
+            assetViewContainer.top(0).fillHorizontally().heightEqualsWidth()
+            assetViewContainerConstraintTop = assetViewContainer.topConstraint
+            assetZoomableView.fillContainer().heightEqualsWidth()
+            assetZoomableView.Bottom == collectionView.Top
+            assetViewContainer.sendSubviewToBack(assetZoomableView)
 
-        progressView.height(5).fillHorizontally()
-        progressView.Bottom == line.Top
+            progressView.height(5).fillHorizontally()
+            progressView.Bottom == line.Top
+        } else {
+            subviews(
+                assetViewContainer.subviews(
+                    assetZoomableView
+                ),
+                collectionContainerView.subviews(
+                    collectionView
+                ),
+                progressView,
+                maxNumberWarningView.subviews(
+                    maxNumberWarningLabel
+                )
+            )
+
+            collectionContainerView.fillContainer()
+            collectionView.fillContainer()
+            assetViewContainer.top(0).fillHorizontally().heightEqualsWidth()
+            assetViewContainerConstraintTop = assetViewContainer.topConstraint
+            assetZoomableView.fillContainer().heightEqualsWidth()
+
+            progressView.height(5).fillHorizontally()
+            progressView.centerInContainer()
+        }
 
         |maxNumberWarningView|.bottom(0)
         maxNumberWarningView.Top == safeAreaLayoutGuide.Bottom - 40
